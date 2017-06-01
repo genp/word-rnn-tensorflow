@@ -153,3 +153,19 @@ class Model():
             for i, label in enumerate(pred):
                 ret += ' ' + words[label] if i > 0 else words[label]
         return ret
+
+
+    def score(self, sess, test_sentence):
+        test_tokens = test_sentence.split()
+        state = sess.run(self.cell.zero_state(1, tf.float32))
+        perplexity = []
+        scores = []
+        for word in test_tokens:
+            word = word.strip()
+            x = np.zeros((1, 1))
+            x[0, 0] = vocab.get(word,0)
+            feed = {self.input_data: x, self.initial_state:state}
+            [probs, state] = sess.run([self.probs, self.final_state], feed)
+            scores.append(max(probs[0]))
+            perplexity.append(2**max(probs[0]))
+        return perplexity, scores
